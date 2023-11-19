@@ -12,7 +12,7 @@ class LinearModel:
         is_render: bool = True
     ):
 
-        # Rnadomly init the weights
+        # Randomly init the weights
         self.W = np.random.rand(3)
 
         # Gradients

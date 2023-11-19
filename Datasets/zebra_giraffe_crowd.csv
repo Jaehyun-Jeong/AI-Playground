@@ -1,0 +1,15 @@
+x, y, species 
+-1, 1,    zebra
+-1, 0.5,  zebra
+-2. 0.75, zebra
+-1, -1,   giraffe
+-1, -1.5, giraffe
+-1.5, -2, giraffe
+0.2, 0.1, zebra
+0.2, 1,   zebra
+0.3, 0.4, zebra
+0.4, 0.5, zebra
+4, -0.5,  giraffe
+4, 1,     giraffe
+4.5, 1.2, giraffe
+4.5 0.6,  giraffe

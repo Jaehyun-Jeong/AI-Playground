@@ -1,10 +1,21 @@
-from model import LinearModel
+from model import LSM
+
 import matplotlib.pyplot as plt
+from pandas import read_excel
 
-import numpy as np
+# Load Data
+df = read_excel("../Datasets/height_data.xlsx")
 
-X = np.array([[10, 0], [8.3, 1], [9, 0.5], [8.8, 1.1], [7, 2], [1, 10], [0, 9.8], [1.1, 7], [0.5, 8], [0.1, 10]])
-Y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+X = df['age'].to_list()
+Y = df['height'].to_list()
 
-linear_model = LinearModel(learning_rate=0.05)
-linear_model.train(X, Y, 60)
+linear_model = LSM()
+linear_model.render_init(X, Y)
+
+# linear_model.draw_line(X, Y, "before_train", line_color="red")
+
+linear_model.train(X, Y)
+
+linear_model.draw_line(X, Y, "after_train")
+
+plt.show()

@@ -19,7 +19,6 @@ class LSM:
         # Rendering
         if self.__is_render:
             self.fig = plt.figure()
-            plt.ion()  # Use interactive mode
             self.ax = self.fig.add_subplot(111)
             self.line = None
 
@@ -54,8 +53,6 @@ class LSM:
         for x, y in zip(X, Y):
             cov += (x - xMean)*(y - yMean)
 
-        cov = cov / len(X)
-
         return cov
 
     def variance(
@@ -66,8 +63,7 @@ class LSM:
         var = 0
         sampleMean = self.mean(X)
         for x in X:
-            var = (x - sampleMean)**2
-        var = var / len(X)
+            var += (x - sampleMean)**2
 
         return var
 
@@ -80,8 +76,6 @@ class LSM:
         xMean = self.mean(X)
         yMean = self.mean(Y)
 
-        print(self.covariance(X, Y))
-
         self.W[1] = self.covariance(X,Y)/self.variance(X)
         self.W[0] = yMean - self.W[1]*xMean
 
@@ -93,31 +87,42 @@ class LSM:
 
     def render_init(
         self,
-        X: np.ndarray,
-        Y: np.ndarray
+        X: list,
+        Y: list,
     ):
+
         # Set lim
-        x_min = np.min(X[:, 0]) - 1
-        x_max = np.max(X[:, 0]) + 1
-        y_min = np.min(X[:, 1]) - 1
-        y_max = np.max(X[:, 1]) + 1
-        self.ax.set_xlim(x_min, x_max)
-        self.ax.set_ylim(y_min, y_max)
+        x_min = np.min(X) - 1
+        x_max = np.max(X) + 1
+        line_range = np.arange(x_min, x_max, 0.1)
 
         # Plot data
-        self.ax.scatter(X[Y == 0, 0], X[Y == 0, 1],
-                        s=80,
-                        color='red',
-                        marker='*')
-        self.ax.scatter(X[Y == 1, 0], X[Y == 1, 1],
+        self.ax.scatter(X, Y,
                         s=80,
                         color='blue',
-                        marker='D')
-        
-        self.line, = self.ax.plot(x, y, color="black")
+                        marker='o')
 
-        plt.savefig(f"./results/{self.step}.png")
-        plt.show()
+    def draw_line(
+        self,
+        X: list,
+        Y: list,
+        fn: str,
+        line_color: str = "black",
+    ):
+
+        # Set lim
+        x_min = np.min(X) - 1
+        x_max = np.max(X) + 1
+        line_range = np.arange(x_min, x_max, 0.1)
+
+        line_x = [x for x in line_range]
+        line_y = [self.W[0] + x*self.W[1] for x in line_range]
+
+        self.ax.plot(line_x, line_y, color=line_color, label=fn)
+
+        plt.savefig(f"./results/{fn}.png")
+
+        self.ax.legend()
 
 
 if __name__ == "__main__":
@@ -125,6 +130,12 @@ if __name__ == "__main__":
     Y = [16.7, 15.9, 13.8, 14.8, 13.2, 12.2, 9.2]
 
     linear_model = LSM()
+    linear_model.render_init(X, Y)
+
+    linear_model.draw_line(X, Y, "before_train", line_color="red")
+
     linear_model.train(X, Y)
 
-    print(linear_model.W)
+    linear_model.draw_line(X, Y, "after_train")
+
+    plt.show()

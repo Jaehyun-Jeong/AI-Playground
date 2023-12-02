@@ -231,4 +231,4 @@ if __name__ == "__main__":
     Y = np.array([0, 0, 1])
 
     linear_model = LinearModel()
-    linear_model.train(X, Y, 60)
+    linear_model.train(X, Y, 200)

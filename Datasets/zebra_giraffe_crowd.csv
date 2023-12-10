@@ -1,13 +1,13 @@
-x, y, species 
--0.8, 0.2, giraffe
--0.8, -0.5, zebra
--0.8, -0.9, zebra
--0.6, 0.5, giraffe
--0.3, 0.2, giraffe
--0.3, -0.65, zebra
--0.2, 0.6, giraffe
-0.2, -0.9, giraffe
-0.4, -0.5, giraffe
-0.4, 0.2, zebra
-0.8, 0.35, zebra
-0.8, -0.7, giraffe
+x,y,species
+-0.8,0.2,giraffe
+-0.8,-0.5,zebra
+-0.8,-0.9,zebra
+-0.6,0.5,giraffe
+-0.3,0.2,giraffe
+-0.3,-0.65,zebra
+-0.2,0.6,giraffe
+0.2,-0.9,giraffe
+0.4,-0.5,giraffe
+0.4,0.2,zebra
+0.8,0.35,zebra
+0.8,-0.7,giraffe

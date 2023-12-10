@@ -74,11 +74,6 @@ class DecisionTree():
         featureIdx, threshold = \
             self.__best_criteria(X, Y, featureIdxs)
 
-        # 이미 featureIdx에 대해서 분기를 만들었으므로,
-        # 다음 노드부터는 사용하지 않는다.
-        updatedFeatureIdxs = copy(featureIdxs)
-        updatedFeatureIdxs.remove(featureIdx)
-
         # 아래의 조건을 만족하면 트리 생성 종료한다.
         # 조건1: 나눠진 노드 안에 있는 클래스의 수가 1이다.
         if len(classes) == 1:  # 조건1
@@ -90,11 +85,11 @@ class DecisionTree():
         left = self.__build_tree(
             X[leftIdxs, :],
             Y[leftIdxs],
-            updatedFeatureIdxs)
+            featureIdxs)
         right = self.__build_tree(
             X[rightIdxs, :],
             Y[rightIdxs],
-            updatedFeatureIdxs)
+            featureIdxs)
 
         # Root 노드를 생성한다.
         node = Node(feature=featureIdx, threshold=threshold)
@@ -119,7 +114,7 @@ class DecisionTree():
 
         for featureIdx in featureIdxs:
             XFeature = X[:, featureIdx]
-            thresholds = np.unique(XFeature)
+            thresholds = self.__thresholds(np.unique(XFeature))
             for threshold in thresholds:
                 leftIdxs, rightIdxs = \
                     self.__split(X, featureIdx, threshold)
@@ -143,6 +138,19 @@ class DecisionTree():
                     bestThreshold = threshold
 
         return bestFeature, bestThreshold
+
+    @staticmethod
+    def __thresholds(
+        uniqueValues: np.ndarray
+    ):
+
+        size: int = len(uniqueValues)
+        thresholds: list = [0] * (size-1)
+
+        for i in range(size-1):
+            thresholds[i] = (uniqueValues[i] + uniqueValues[i+1]) / 2
+
+        return thresholds
 
     @staticmethod
     def __select_class(

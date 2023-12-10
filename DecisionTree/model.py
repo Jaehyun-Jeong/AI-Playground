@@ -76,7 +76,8 @@ class DecisionTree():
 
         # 아래의 조건을 만족하면 트리 생성 종료한다.
         # 조건1: 나눠진 노드 안에 있는 클래스의 수가 1이다.
-        if len(classes) == 1:  # 조건1
+        # 조건2: 나눌 수 있는 threshold, feature가 존재하지 않는다.
+        if len(classes) == 1 or not (featureIdx or threshold):
             # Leaf 노드를 리턴한다.
             return Node(classIdx=self.__select_class(Y))
 
@@ -114,28 +115,33 @@ class DecisionTree():
 
         for featureIdx in featureIdxs:
             XFeature = X[:, featureIdx]
-            thresholds = self.__thresholds(np.unique(XFeature))
-            for threshold in thresholds:
-                leftIdxs, rightIdxs = \
-                    self.__split(X, featureIdx, threshold)
-                leftGiniImpurity = self.gini_impurity(Y[leftIdxs])
-                rightGiniImpurity = self.gini_impurity(Y[rightIdxs])
+            uniqueValues = np.unique(XFeature)
 
-                # 가중 지니계수를 계산한다.
-                sizeLeft = len(leftIdxs)
-                sizeRight = len(rightIdxs)
-                giniImpurity = 0
-                giniImpurity += \
-                    leftGiniImpurity * sizeLeft / size
-                giniImpurity += \
-                    rightGiniImpurity * sizeRight / size
+            # If "XFeature" has one unique value,
+            # no threshold
+            if len(uniqueValues) != 1:
+                thresholds = self.__thresholds(uniqueValues)
+                for threshold in thresholds:
+                    leftIdxs, rightIdxs = \
+                        self.__split(X, featureIdx, threshold)
+                    leftGiniImpurity = self.gini_impurity(Y[leftIdxs])
+                    rightGiniImpurity = self.gini_impurity(Y[rightIdxs])
 
-                # 지니 계수는 작을수록 균일도가 높으므로,
-                # "bestGiniImpurity"를 다음과 같이 수정한다.
-                if bestGiniImpurity > giniImpurity:
-                    bestGiniImpurity = giniImpurity
-                    bestFeature = featureIdx
-                    bestThreshold = threshold
+                    # 가중 지니계수를 계산한다.
+                    sizeLeft = len(leftIdxs)
+                    sizeRight = len(rightIdxs)
+                    giniImpurity = 0
+                    giniImpurity += \
+                        leftGiniImpurity * sizeLeft / size
+                    giniImpurity += \
+                        rightGiniImpurity * sizeRight / size
+
+                    # 지니 계수는 작을수록 균일도가 높으므로,
+                    # "bestGiniImpurity"를 다음과 같이 수정한다.
+                    if bestGiniImpurity > giniImpurity:
+                        bestGiniImpurity = giniImpurity
+                        bestFeature = featureIdx
+                        bestThreshold = threshold
 
         return bestFeature, bestThreshold
 

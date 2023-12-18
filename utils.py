@@ -51,6 +51,13 @@ def count_word(string: str, word: str) -> int:
     return count
 
 
+'''
+One hot encoding
+parameters
+    data: Data as pandas DataFrame type.
+    textFeature: List of Feature names you want to vectorize.
+    words: List of words that will be counted
+'''
 def bag_of_words(
     data: pd.DataFrame,
     textFeature: list,

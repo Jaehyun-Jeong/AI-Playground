@@ -1,10 +1,11 @@
-positive    오늘 날씨가 좋아서 기분이 좋아요!
-positive    친구들과 함께 시간을 보내서 너무 좋았어요.
-positive    선물을 받아서 기분이 좋아지고 행복해요!
-positive    오늘 일이 잘 풀려서 기뻐요.
-positive    엄마가 그림책을 읽어주는 것은 참 좋아요.
-negative    나는 받아쓰기가 싫어요.
-negative    친구들하고 싸우기 싫어요.
-negative    채소는 맛없어서 싫어요.
-negative    아픈 건 싫으니까 주사 안 맞을래요.
-negative    비가 오니까 나가기 싫어져.
+label	sentence
+positive	오늘 날씨가 좋아서 기분이 좋아요!
+positive	친구들과 함께 시간을 보내서 너무 좋았어요.
+positive	선물을 받아서 기분이 좋아지고 행복해요!
+positive	오늘 일이 잘 풀려서 기뻐요.
+positive	엄마가 그림책을 읽어주는 것은 참 좋아요.
+negative	나는 받아쓰기가 싫어요.
+negative	친구들하고 싸우기 싫어요.
+negative	채소는 맛없어서 싫어요.
+negative	아픈 건 싫으니까 주사 안 맞을래요.
+negative	비가 오니까 나가기 싫어져.

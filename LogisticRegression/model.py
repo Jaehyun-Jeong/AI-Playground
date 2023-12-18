@@ -170,6 +170,7 @@ class LinearModel:
         X: np.ndarray,
         Y: np.ndarray
     ):
+
         # Set lim
         x_min = np.min(X[:, 0]) - 1
         x_max = np.max(X[:, 0]) + 1
@@ -187,7 +188,7 @@ class LinearModel:
                         s=80,
                         color='blue',
                         marker='D')
-        
+
         x, y = self.decision_boundary(X)
         self.line, = self.ax.plot(x, y, color="black")
 

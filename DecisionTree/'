@@ -52,59 +52,6 @@ class TreeBased():
         self._numFeatures: int = None
         self._root: Type(Node) = None
 
-    @staticmethod
-    def __select_class(
-        Y: np.ndarray
-    ):
-
-        return np.bincount(Y).argmax()
-
-    @staticmethod
-    def __split(
-        X: np.ndarray,
-        featureIdx: int,
-        threshold: float
-    ):
-
-        XFeature = X[:, featureIdx]
-        leftIdxs = np.argwhere(XFeature <= threshold).flatten()
-        rightIdxs = np.argwhere(XFeature > threshold).flatten()
-
-        return leftIdxs, rightIdxs
-
-    @staticmethod
-    def gini_impurity(
-        Y: np.ndarray
-    ) -> float:
-
-        giniImpurity: float = 1
-        listClasses: np.ndarray = np.unique(Y)
-        sizeY: int = len(Y)
-
-        for classIdx in listClasses:
-            giniImpurity -= (np.sum(Y == classIdx) / sizeY)**2
-
-        return giniImpurity
-
-
-class HumanTreeNode(Node):
-
-    def __init__(
-        self
-    ):
-        super().__init__()
-        self._root = Node()
-
-        self._classes: list = None
-
-    @property
-    def classes(self):
-        return self._classes
-
-    @classes.setter
-    def classes(self, classes: list):
-        self._classes = classes
-
 
 class HumanTree(TreeBased):
 
@@ -114,8 +61,7 @@ class HumanTree(TreeBased):
 
         super().__init__()
 
-        self._currentNode: Type(HumanTreeNode) = None
-        self._currentNodeIdx: int = None
+        self.checkoutIdx: int = None
 
     # 인덱싱은 다음과 같이 한다.
     #       1       depth: 0 
@@ -138,50 +84,10 @@ class HumanTree(TreeBased):
         number: int,
     ):
 
-        self._currentNode = self_root
+        depth - format(number, 'b')
 
-        # Create an order of Lefts and Rights
-        # ex)
-        # depth == 3
-        # 0: 000 (LLL) => Left->Left->Left
-        # 1: 001 (LLR) => Left->Left->Right
-        # 2: 010 (LRL) => Left->Right->Left
-        # 3: 011 (LRR) => Left->Right->Right
-        # 4: 100 (RLL) => Right->Left->Left
-        # 5: 101 (RLR) => Right->Left->Left
-        # 6: 110 (RRL) => Right->Right->Left
-        # 7: 111 (RRR) => Right->Right->Right
-        binNumber = format(number, 'b')
-        orderLeftRight = '0'*(depth - len(binNumber)) + binNumber
-
-        for move in orderLeftRight:
-
-            if move == '0':  # Left
-
-                if self._currentNode.left == None:
-                    raise ValueError("No node! First, create a node using the \"build_branch\" method")
-                else:
-                    self._currentNode = self._currentNode.left
-
-            elif move == '1':  # Right
-
-                if self._currentNode.right== None:
-                    raise ValueError("No node! First, create a node using the \"build_branch\" method")
-                else:
-                    self._currentNode = self._currentNode.right
-
-            else:
-                raise Exception("An unexpected error occurred")
-
-        self._currentNodeIdx = self.__get_idx(depth, number)
-
-    def start_train(
-        self,
-        X: np.ndarray,
-        Y: np.ndarray
-    ):
-
-        pass
+        self.checkoutIdx = self.__get_idx(depth, number)
+        checkoutIdx = None
 
     def predict(
         self,
@@ -192,12 +98,11 @@ class HumanTree(TreeBased):
         pass
 
     def build_branch(
-        self,
+        self
     ):
 
-        if self._currentNode == None:
-            raise ValueError("Select a node first using \"select_node\" method")
-
+        pass
+        
 class DecisionTree(TreeBased):
 
     def __init__(
@@ -311,6 +216,40 @@ class DecisionTree(TreeBased):
             thresholds[i] = (uniqueValues[i] + uniqueValues[i+1]) / 2
 
         return thresholds
+
+    @staticmethod
+    def __select_class(
+        Y: np.ndarray
+    ):
+
+        return np.bincount(Y).argmax()
+
+    @staticmethod
+    def __split(
+        X: np.ndarray,
+        featureIdx: int,
+        threshold: float
+    ):
+
+        XFeature = X[:, featureIdx]
+        leftIdxs = np.argwhere(XFeature <= threshold).flatten()
+        rightIdxs = np.argwhere(XFeature > threshold).flatten()
+
+        return leftIdxs, rightIdxs
+
+    @staticmethod
+    def gini_impurity(
+        Y: np.ndarray
+    ) -> float:
+
+        giniImpurity: float = 1
+        listClasses: np.ndarray = np.unique(Y)
+        sizeY: int = len(Y)
+
+        for classIdx in listClasses:
+            giniImpurity -= (np.sum(Y == classIdx) / sizeY)**2
+
+        return giniImpurity
 
 
 if __name__ == "__main__":

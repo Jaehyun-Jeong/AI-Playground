@@ -3,17 +3,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class LinearModel:
+class LogisticRegression:
 
     def __init__(
         self,
+        n_features: int = 2,
         is_train: bool = True,
         learning_rate: float = 0.1,
         is_render: bool = True
     ):
 
+        # Dividing tolerance
+        self.tol = 1e-4
+
+        self.__n_features = n_features
+
         # Randomly init the weights
-        self.W = np.random.rand(3)
+        # n_features + bias
+        self.W = np.random.rand(n_features + 1)
 
         # Gradients
         self.__model_grad = 0
@@ -23,7 +30,12 @@ class LinearModel:
         # Train parameters
         self.__is_train = is_train
         self.__learning_rate = learning_rate
-        self.__is_render = is_render
+
+        # Only for 2 features
+        if n_features == 2:
+            self.__is_render = is_render
+        else:
+            self.__is_render = False
 
         # epoch step number
         self.step = 0
@@ -119,8 +131,8 @@ class LinearModel:
         self
     ):
 
-        temp_grad = np.zeros(3)
-        grad = np.zeros(3)
+        temp_grad = np.zeros(self.__n_features + 1)
+        grad = np.zeros(self.__n_features + 1)
         batch_size = self.__model_grad.shape[0]
 
         for idx, model_grad in enumerate(self.__model_grad):
@@ -199,6 +211,7 @@ class LinearModel:
         self,
         X: np.ndarray,
     ):
+
         x, y = self.decision_boundary(X)
 
         # Update
@@ -214,6 +227,7 @@ class LinearModel:
         Y: np.ndarray,
         epochs: int = 10,
     ):
+
         if self.__is_render:
             self.render_init(X, Y)
 
@@ -224,6 +238,7 @@ class LinearModel:
 
             if self.__is_render:
                 self.render_update(X)
+
             print(L)
 
 if __name__ == "__main__":
@@ -231,5 +246,5 @@ if __name__ == "__main__":
     X = np.array([[1, 0], [3, 2], [10, 2.3]])
     Y = np.array([0, 0, 1])
 
-    linear_model = LinearModel()
+    linear_model = LogisticRegression()
     linear_model.train(X, Y, 200)

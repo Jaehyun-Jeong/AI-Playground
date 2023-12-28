@@ -1,4 +1,19 @@
+import numpy as np
 import pandas as pd
+
+
+def denominator(
+    arr: np.ndarray,
+    tol: float
+) -> np.ndarray:
+
+    newArr = np.copy(arr)
+    newArr[newArr == 0] = tol
+    newArr[np.abs(newArr) < tol]
+    arr[arr == 0] = tol
+    arr[arr < tol] = tol
+
+    return newArr
 
 
 '''
@@ -84,13 +99,13 @@ def bag_of_words(
 
 if __name__ == "__main__":
 
-    '''
     df = pd.read_excel("./Datasets/snow_data.xlsx")
-    df = one_hot(df, ['season', 'snow'])
+    df = one_hot(df, ['season'])
     print(df)
-    '''
 
+    '''
     df = pd.read_csv("./Datasets/positive_negative_sentences.tsv", sep='\t', header=0)
     print(df)
     df = bag_of_words(df, ["sentence"], ["좋아", "싫어"])
     print(df)
+    '''

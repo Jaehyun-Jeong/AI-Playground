@@ -1,5 +1,4 @@
 from typing import Type
-from copy import copy
 import math as ma
 import numpy as np
 
@@ -95,6 +94,9 @@ class HumanTreeNode(Node):
         super().__init__()
         self._root = Node()
 
+        # ex) cat, dog classifier with 100 data
+        # [50, 50]: 50 data of cat, 50 data of dog
+        # [100, 0]:
         self._classes: list = None
 
     @property
@@ -104,6 +106,18 @@ class HumanTreeNode(Node):
     @classes.setter
     def classes(self, classes: list):
         self._classes = classes
+
+    def is_classified(self):
+
+        setClasses: set = set(self._classes)
+        isClassified: bool = False
+
+        if len(setClasses) == 2 \
+                and self._classes.count(0) == (len(self._classes) - 1):
+
+            isClassified = True
+
+        return isClassified
 
 
 class HumanTree(TreeBased):
@@ -118,7 +132,7 @@ class HumanTree(TreeBased):
         self._currentNodeIdx: int = None
 
     # 인덱싱은 다음과 같이 한다.
-    #       1       depth: 0 
+    #       1       depth: 0
     #      / \
     #     /   \
     #    2     3    depth: 1
@@ -138,7 +152,7 @@ class HumanTree(TreeBased):
         number: int,
     ):
 
-        self._currentNode = self_root
+        self._currentNode = self._root
 
         # Create an order of Lefts and Rights
         # ex)
@@ -158,8 +172,8 @@ class HumanTree(TreeBased):
 
             if move == '0':  # Left
 
-                if self._currentNode.left == None:
-                    raise ValueError("No node! First, create a node using the \"build_branch\" method")
+                if not self._currentNode.left:
+                    raise ValueError(\"No node! First, create a node using the \"build_branch\" method")
                 else:
                     self._currentNode = self._currentNode.left
 
@@ -193,10 +207,30 @@ class HumanTree(TreeBased):
 
     def build_branch(
         self,
+        feature: int,
+        threshold: float
     ):
+
+        ans: str = None
+        isBuild: bool = True
 
         if self._currentNode == None:
             raise ValueError("Select a node first using \"select_node\" method")
+
+        # When node is already perfectly classied classes
+        if len(self._currentNode.classes) == 1:
+
+            ans = input("It's already perfectly classified, do you still want to do it? (y|n):")
+            ans = ans.lower()
+
+            # '', 'y', or 'Y'
+            if ans != '' and ans != 'y':
+                isBuild = False
+
+        if isBuild:
+
+            self._currentNode.feature = feature
+            self._currentNode.threshold = threshold
 
 class DecisionTree(TreeBased):
 

@@ -1,6 +1,7 @@
-from typing import Type
+from typing import Type, Tuple
 import math as ma
 import numpy as np
+import pandas as pd
 
 
 class Node:
@@ -51,6 +52,18 @@ class TreeBased():
         self._numFeatures: int = None
         self._root: Type(Node) = None
 
+    # 각 클래스당 데이터 수를 dictionary 형태로 리턴한다.
+    # ex)
+    # {'dog': 30, 'cat', 21}
+    @staticmethod
+    def __count_class(
+        Y: np.ndarray
+    ) -> dict:
+
+        uniqueClasses, countsClasses = np.unique(Y, return_counts=True)
+
+        return dict(zip(uniqueClasses, countsClasses))
+
     @staticmethod
     def __select_class(
         Y: np.ndarray
@@ -63,7 +76,7 @@ class TreeBased():
         X: np.ndarray,
         featureIdx: int,
         threshold: float
-    ):
+    ) -> Tuple[int, int]:
 
         XFeature = X[:, featureIdx]
         leftIdxs = np.argwhere(XFeature <= threshold).flatten()
@@ -91,33 +104,21 @@ class HumanTreeNode(Node):
     def __init__(
         self
     ):
-        super().__init__()
-        self._root = Node()
 
-        # ex) cat, dog classifier with 100 data
-        # [50, 50]: 50 data of cat, 50 data of dog
-        # [100, 0]:
-        self._classes: list = None
+        super().__init__()
+
+        # "self._classes" indicates how much data this node contains.
+        # ex)
+        # {'dog': 30, 'cat', 21}
+        self._classes: dict = None
 
     @property
     def classes(self):
         return self._classes
 
     @classes.setter
-    def classes(self, classes: list):
+    def classes(self, classes: dict):
         self._classes = classes
-
-    def is_classified(self):
-
-        setClasses: set = set(self._classes)
-        isClassified: bool = False
-
-        if len(setClasses) == 2 \
-                and self._classes.count(0) == (len(self._classes) - 1):
-
-            isClassified = True
-
-        return isClassified
 
 
 class HumanTree(TreeBased):
@@ -127,9 +128,24 @@ class HumanTree(TreeBased):
     ):
 
         super().__init__()
+        self._root = Node()
 
+        # Check it's training
+        self._is_train: bool = False
+
+        # Training data
+        self.X: pd.DataFrame = None
+        self.Y: pd.DataFrame = None
+
+        # Indicates a selected node
         self._currentNode: Type(HumanTreeNode) = None
         self._currentNodeIdx: int = None
+
+        # Mapping from feature to feature index
+        self._featureIdxMap: dict = None
+
+        # node index to data indexes
+        self._nodeDataIdxs: dict = {}
 
     # 인덱싱은 다음과 같이 한다.
     #       1       depth: 0
@@ -146,91 +162,135 @@ class HumanTree(TreeBased):
 
         return ma.pow(2, depth) + number
 
+    # Numbers are
+    #       0       depth: 0
+    #      / \
+    #     /   \
+    #    0     1    depth: 1
+    #   / \   / \
+    #  0   1 2   3  depth: 2
     def select_node(
         self,
         depth: int,
         number: int,
     ):
 
+        if number < 0 or number >= ma.pow(2, depth):
+            raise ValueError(
+                "\"number\" must be in the range of "
+                "(0 <= \"number\" < 2 power of depth)")
+
         self._currentNode = self._root
 
-        # Create an order of Lefts and Rights
-        # ex)
-        # depth == 3
-        # 0: 000 (LLL) => Left->Left->Left
-        # 1: 001 (LLR) => Left->Left->Right
-        # 2: 010 (LRL) => Left->Right->Left
-        # 3: 011 (LRR) => Left->Right->Right
-        # 4: 100 (RLL) => Right->Left->Left
-        # 5: 101 (RLR) => Right->Left->Left
-        # 6: 110 (RRL) => Right->Right->Left
-        # 7: 111 (RRR) => Right->Right->Right
-        binNumber = format(number, 'b')
-        orderLeftRight = '0'*(depth - len(binNumber)) + binNumber
+        # If depth == 0, just return the root
+        if depth != 0:
 
-        for move in orderLeftRight:
+            # "depth", "number"의 정보만으로,
+            # root에서 어떤 순서로 움직일지 결정한다.
+            # ex)
+            # depth == 3
+            # 0: 000 (LLL) => Left->Left->Left
+            # 1: 001 (LLR) => Left->Left->Right
+            # 2: 010 (LRL) => Left->Right->Left
+            # 3: 011 (LRR) => Left->Right->Right
+            # 4: 100 (RLL) => Right->Left->Left
+            # 5: 101 (RLR) => Right->Left->Left
+            # 6: 110 (RRL) => Right->Right->Left
+            # 7: 111 (RRR) => Right->Right->Right
+            binNumber = format(number, 'b')
+            orderLeftRight = '0'*(depth - len(binNumber)) + binNumber
 
-            if move == '0':  # Left
+            for move in orderLeftRight:
 
-                if not self._currentNode.left:
-                    raise ValueError(\"No node! First, create a node using the \"build_branch\" method")
+                if move == '0':  # Left
+
+                    if self._currentNode.left is None:
+                        raise ValueError(
+                            "No node! First, "
+                            "create a node using the \"build_branch\" method")
+                    else:
+                        self._currentNode = self._currentNode.left
+
+                elif move == '1':  # Right
+
+                    if self._currentNode.right is None:
+                        raise ValueError(
+                            "No node! First, "
+                            "create a node using the \"build_branch\" method")
+                    else:
+                        self._currentNode = self._currentNode.right
+
                 else:
-                    self._currentNode = self._currentNode.left
+                    raise Exception("An unexpected error occurred")
 
-            elif move == '1':  # Right
-
-                if self._currentNode.right== None:
-                    raise ValueError("No node! First, create a node using the \"build_branch\" method")
-                else:
-                    self._currentNode = self._currentNode.right
-
-            else:
-                raise Exception("An unexpected error occurred")
-
-        self._currentNodeIdx = self.__get_idx(depth, number)
+            self._currentNodeIdx = self.__get_idx(depth, number)
 
     def start_train(
         self,
-        X: np.ndarray,
-        Y: np.ndarray
+        featureList: list,
+        targetList: list,
+        data: pd.DataFrame
     ):
 
-        pass
+        self.X = data[featureList].to_numpy()
+        self.Y = data[targetList].to_numpy()
+        self._is_train = True
 
-    def predict(
-        self,
-        X: np.ndarray,
-        Y: np.ndarray
-    ):
+        nData: int = self.X.shape[0]
 
-        pass
+        # Select root node
+        self.select_node(depth=0, number=0)
+        self._root.classes = self._TreeBased__count_class(self.Y)
+        self._nodeDataIdxs[self._currentNodeIdx] = \
+            np.array([i for i in range(nData)])
+
+        # Select root node classifing result
+        self._root.classIdx = self._TreeBased__select_class(self.Y)
+
+        # Create a map from feature to featureIdx
+        self._featureIdxMap = {}
+        for featureIdx, featureName in enumerate(featureList):
+            self._featureIdxMap[featureName] = featureIdx
 
     def build_branch(
         self,
-        feature: int,
+        featureName: str,
         threshold: float
     ):
 
-        ans: str = None
-        isBuild: bool = True
+        # Error Handling
+        if not self._is_train:
+            raise ValueError(
+                "Start training before create new branches "
+                "using the \"start_train\" method")
+        if self._currentNode is None:
+            raise ValueError(
+                "Select a node first "
+                "using \"select_node\" method")
 
-        if self._currentNode == None:
-            raise ValueError("Select a node first using \"select_node\" method")
+        # Convert feature name to feature index
+        featureIdx = self._featureIdxMap[featureName]
 
-        # When node is already perfectly classied classes
-        if len(self._currentNode.classes) == 1:
+        # Split data
+        parentIdxs = self._nodeDataIndexs[self._currentNodeIdx]
+        leftIdxs, rightIdxs = \
+            self._TreeBased__split(self.X, featureIdx, threshold)
+        leftIdxs = list(set(parentIdxs).intersection(leftIdxs))
+        rightIdxs = list(set(parentIdxs).intersection(rightIdxs))
 
-            ans = input("It's already perfectly classified, do you still want to do it? (y|n):")
-            ans = ans.lower()
+        # Left and right nodes classifing results
+        leftClassIdx = self._TreeBased__select_class(self.Y[leftIdxs])
+        rightClassIdx = self._TreeBased__select_class(self.Y[rightIdxs])
 
-            # '', 'y', or 'Y'
-            if ans != '' and ans != 'y':
-                isBuild = False
+        self._currentNode.threshold = threshold
+        self._currentNode.feature = featureIdx
 
-        if isBuild:
+        self._currentNode.left = Node(classIdx=leftClassIdx)
+        self._currentNode.right = Node(classIdx=rightClassIdx)
 
-            self._currentNode.feature = feature
-            self._currentNode.threshold = threshold
+        self._currentNode.left.classes = \
+            self._TreeBased__count_class(self.Y[leftIdxs])
+
 
 class DecisionTree(TreeBased):
 
@@ -352,14 +412,12 @@ if __name__ == "__main__":
     from pandas import read_csv
 
     # Load Data
-    df = read_csv("../Datasets/diamond_rock_index.csv")
+    df = read_csv("../Datasets/diamond_rock.csv")
 
-    X = df[['hardness', 'brightness']].to_numpy()
-    Y = df['sort'].to_numpy()
+    featureList = ['hardness', 'brightness']
+    targetList = ['sort']
 
-    DT = DecisionTree()
-    DT.train(X, Y)
+    HT = HumanTree()
+    HT.start_train(featureList, targetList, df)
 
-    print(DT._root.__dict__)
-    print(DT._root.left.__dict__)
-    print(DT._root.right.__dict__)
+    print(HT._featureIdxMap)

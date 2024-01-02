@@ -41,8 +41,9 @@ class HumanTree(TreeBased):
         self._is_train: bool = False
 
         # Training data
-        self.X: pd.DataFrame = None
-        self.Y: pd.DataFrame = None
+        self.data: pd.DataFrame = None
+        self.X: np.ndarray = None
+        self.Y: np.ndarray = None
         self.YIdx: np.ndarray = None  # Indexed Y by "self._featureIdxMap"
 
         # Indicates a selected node
@@ -141,6 +142,7 @@ class HumanTree(TreeBased):
 
         self._numFeatures = len(featureList)
 
+        self.data = data
         self.X = data[featureList].to_numpy()
         self.Y = data[targetList].to_numpy().flatten()
         self._is_train = True
@@ -206,3 +208,7 @@ class HumanTree(TreeBased):
 
         self._currentNode.left.classes = \
             self._TreeBased__count_class(self.Y[leftIdxs])
+
+    # Show result as pandas.DataFrame
+    def show(self) -> pd.DataFrame:
+        return self.data.iloc[self._nodeDataIdxs[self._currentNodeIdx]]

@@ -83,8 +83,8 @@ class TreeBased():
     ) -> Tuple[int, int]:
 
         XFeature = X[:, featureIdx]
-        leftIdxs = np.argwhere(XFeature <= threshold).flatten()
-        rightIdxs = np.argwhere(XFeature > threshold).flatten()
+        leftIdxs = np.argwhere(XFeature < threshold).flatten()
+        rightIdxs = np.argwhere(XFeature >= threshold).flatten()
 
         return leftIdxs, rightIdxs
 

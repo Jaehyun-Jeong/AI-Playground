@@ -7,11 +7,12 @@ def denominator(
     tol: float
 ) -> np.ndarray:
 
-    newArr = np.copy(arr)
-    newArr[newArr == 0] = tol
-    newArr[np.abs(newArr) < tol]
-    arr[arr == 0] = tol
-    arr[arr < tol] = tol
+    newArr: np.ndarray  = np.copy(arr)
+    newArr[newArr == 0] = tol  # Replace 0 to "tol"
+
+    tempArr: np.ndarray = np.copy(newArr[np.abs(newArr) < tol])
+
+    newArr[np.abs(newArr) < tol] = (tempArr / np.linalg.norm(tempArr)) * tol
 
     return newArr
 
@@ -99,13 +100,16 @@ def bag_of_words(
 
 if __name__ == "__main__":
 
+    '''
     df = pd.read_excel("./Datasets/snow_data.xlsx")
     df = one_hot(df, ['season'])
     print(df)
 
-    '''
     df = pd.read_csv("./Datasets/positive_negative_sentences.tsv", sep='\t', header=0)
     print(df)
     df = bag_of_words(df, ["sentence"], ["좋아", "싫어"])
     print(df)
     '''
+
+    arr = np.array([1, 0, 0.5, -2, -1e-6])
+    denominator(arr, 1e-4)

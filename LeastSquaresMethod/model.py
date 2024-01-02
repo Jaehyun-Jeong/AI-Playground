@@ -22,7 +22,6 @@ class LSM:
             self.ax = self.fig.add_subplot(111)
             self.line = None
 
-
     @property
     def is_render(self) -> bool:
         return self.__is_render

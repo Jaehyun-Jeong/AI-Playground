@@ -1,3 +1,9 @@
+import sys
+sys.path.append("../")  # to import module
+
+# Handling Value Errors
+from utils import denominator, log_prob
+
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +17,88 @@ class LogisticRegression:
         is_train: bool = True,
         learning_rate: float = 0.1,
         is_render: bool = True
+    ):
+
+        self.__n_features = n_features
+
+        # Randomly init the weights
+        # n_features + bias
+        self.W = np.random.rand(n_features + 1)
+
+        # Gradients
+        self.__model_grad = 0
+        self.__sigmoid_grad = 0
+        self.__binary_cross_entropy_grad = 0
+
+        # Train parameters
+        self.__is_train = is_train
+        self.__learning_rate = learning_rate
+
+        # Only for 2 features
+        if n_features == 2:
+            self.__is_render = is_render
+        else:
+            self.__is_render = False
+
+        # epoch step number
+        self.step = 0
+
+        # Rendering
+        if self.__is_render:
+            self.fig = plt.figure()
+            plt.ion()  # Use interactive mode
+            self.ax = self.fig.add_subplot(111)
+            self.line = None
+
+    @property
+    def is_train(self) -> bool:
+        return self.__is_train
+
+    @is_train.setter
+    def is_train(
+        self,
+        is_train: bool
+    ) -> bool:
+        self.__is_train = is_train
+
+    @property
+    def learning_rate(self) -> float:
+        return self.__learning_rate
+
+    @learning_rate.setter
+    def learning_rate(
+        self,
+        learning_rate: float
+    ) -> float:
+        self.__learning_rate = learning_rate
+
+    @property
+    def is_render(self) -> bool:
+        return self.__is_render
+
+    @is_render.setter
+    def is_render(
+        self,
+        is_render: bool
+    ):
+        self.__is_render = is_render
+
+    def model(
+        self,
+        data: np.ndarray
+    ) -> np.ndarray:
+
+        # Get the number of data
+        data_size = data.shape[0]
+        ones = np.ones(data_size)  # For bias multiplication
+
+        # Add column of ones to multiply bias
+        X = np.column_stack((ones, data))
+
+        # Save grads
+        if self.__is_train:
+            # (|N|, features)
+            self.__model_grad = X
 
         # (|N|, )
         return np.matmul(X, self.W)
@@ -37,10 +125,10 @@ class LogisticRegression:
         if self.__is_train:
             # (|N|, )
             self.__binary_cross_entropy_grad = \
-                (Y_hat - Y) / (Y_hat*(1 - Y_hat))
+                (Y_hat - Y) / denominator(Y_hat*(1 - Y_hat))
 
         # (|N|, )
-        return -(Y*np.log(Y_hat) + (1-Y)*np.log(1-Y_hat))
+        return -(Y*log_prob(Y_hat) + (1-Y)*log_prob(1-Y_hat))
 
     def batch_gradient_descent(
         self
@@ -146,7 +234,7 @@ class LogisticRegression:
         if self.__is_render:
             self.render_init(X, Y)
 
-        for _ in range(epochs):
+        for epoch in range(epochs):
             L = self.forward(X, Y)
             self.batch_gradient_descent()
             self.step += 1
@@ -154,7 +242,11 @@ class LogisticRegression:
             if self.__is_render:
                 self.render_update(X)
 
-            print(L)
+            # print training status
+            resultStr = f"epoch:{epoch} loss: {round(L, 6)}"
+            resultLen = len(resultStr)
+            print(resultStr)
+            print('-'*resultLen)
 
 if __name__ == "__main__":
     # data = np.array([[1, 2], [3, 2], [10, 2.3]])

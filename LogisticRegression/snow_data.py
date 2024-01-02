@@ -17,5 +17,5 @@ Y = Y.astype(np.int64)
 
 DT = LogisticRegression(
     n_features=n_features,
-    learning_rate=0.05)
+    learning_rate=0.001)
 DT.train(X, Y, 200)

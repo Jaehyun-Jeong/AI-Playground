@@ -2,10 +2,20 @@ import numpy as np
 import pandas as pd
 
 
+'''
+ENG:
+Handle devide by zero
+KOR:
+0또는 "tol"보다 작은 수로 나눌 때 값을 조정
+'''
 def denominator(
     arr: np.ndarray,
-    tol: float
+    tol: float = None
 ) -> np.ndarray:
+
+    # The tolerance provided by NumPy
+    if tol is None:
+        tol = np.finfo(arr.dtype).eps
 
     newArr: np.ndarray  = np.copy(arr)
     newArr[newArr == 0] = tol  # Replace 0 to "tol"
@@ -15,6 +25,28 @@ def denominator(
     newArr[np.abs(newArr) < tol] = (tempArr / np.linalg.norm(tempArr)) * tol
 
     return newArr
+
+'''
+ENG:
+Adjust log probabilities when the probability is 0 or 1, as logarithmic operations are undefined for these values.
+KOR:
+log probability는 확룰이 1 또는 0 일 때 정의되지 않으므로, 값을 조정한다.
+'''
+def log_prob(
+    prob: np.ndarray,
+    tol: float = None
+):
+
+    newProb = np.copy(prob)
+
+    # The tolerance provided by NumPy
+    if tol is None:
+        tol = np.finfo(newProb.dtype).eps
+
+    # Clip probability from [0, 1] to [tol, 1 - tol]
+    newProb = np.maximum(tol, np.minimum(1 - tol, newProb))
+
+    return np.log(newProb)
 
 
 '''
@@ -110,6 +142,6 @@ if __name__ == "__main__":
     df = bag_of_words(df, ["sentence"], ["좋아", "싫어"])
     print(df)
     '''
+    arr = np.array([1.09023901e-13, 1.15463195e-14, 6.21724894e-15, 2.22044605e-16, 2.66453526e-15, 5.06261699e-14, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.68673972e-14, 1.77635684e-15, 4.44089210e-16, 6.66133815e-16, 2.46025422e-13])
 
-    arr = np.array([1, 0, 0.5, -2, -1e-6])
-    denominator(arr, 1e-4)
+    print(log_prob(arr))

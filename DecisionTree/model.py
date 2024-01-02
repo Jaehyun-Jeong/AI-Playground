@@ -49,6 +49,7 @@ class TreeBased():
     def __init__(
         self
     ):
+
         self._numFeatures: int = None
         self._root: Type(Node) = None
 
@@ -69,7 +70,12 @@ class TreeBased():
         Y: np.ndarray
     ):
 
-        return np.bincount(Y).argmax()
+        try:
+            selectClass = np.bincount(Y).argmax()
+        except ValueError:
+            selectClass = None
+
+        return selectClass
 
     @staticmethod
     def __split(
@@ -136,31 +142,32 @@ class HumanTree(TreeBased):
         # Training data
         self.X: pd.DataFrame = None
         self.Y: pd.DataFrame = None
+        self.YIdx: np.ndarray = None  # Indexed Y by "self._featureIdxMap"
 
         # Indicates a selected node
         self._currentNode: Type(HumanTreeNode) = None
         self._currentNodeIdx: int = None
 
         # Mapping from feature to feature index
-        self._featureIdxMap: dict = None
+        self._featureIdxMap: dict = {}
 
         # node index to data indexes
         self._nodeDataIdxs: dict = {}
 
     # 인덱싱은 다음과 같이 한다.
-    #       1       depth: 0
+    #       0       depth: 0
     #      / \
     #     /   \
-    #    2     3    depth: 1
+    #    1     2    depth: 1
     #   / \   / \
-    #  4   5 6   7  depth: 2
+    #  3   4 5   6  depth: 2
     @staticmethod
     def __get_idx(
         depth: int,
         number: int
-    ):
+    ) -> int:
 
-        return ma.pow(2, depth) + number
+        return int(ma.pow(2, depth) + number - 1)
 
     # Numbers are
     #       0       depth: 0
@@ -180,6 +187,7 @@ class HumanTree(TreeBased):
                 "\"number\" must be in the range of "
                 "(0 <= \"number\" < 2 power of depth)")
 
+        self._currentNodeIdx = self.__get_idx(depth, number)
         self._currentNode = self._root
 
         # If depth == 0, just return the root
@@ -223,8 +231,6 @@ class HumanTree(TreeBased):
                 else:
                     raise Exception("An unexpected error occurred")
 
-            self._currentNodeIdx = self.__get_idx(depth, number)
-
     def start_train(
         self,
         featureList: list,
@@ -232,11 +238,19 @@ class HumanTree(TreeBased):
         data: pd.DataFrame
     ):
 
+        self._numFeatures = len(featureList)
+
         self.X = data[featureList].to_numpy()
-        self.Y = data[targetList].to_numpy()
+        self.Y = data[targetList].to_numpy().flatten()
         self._is_train = True
 
         nData: int = self.X.shape[0]
+        self.YIdx = np.zeros(self.Y.shape, dtype=int)  # class as index
+
+        # Create a map from feature to featureIdx
+        for featureIdx, featureName in enumerate(featureList):
+            self._featureIdxMap[featureName] = featureIdx
+            self.YIdx[self.Y == featureName] = featureIdx  # Set "self.YIdx"
 
         # Select root node
         self.select_node(depth=0, number=0)
@@ -245,12 +259,7 @@ class HumanTree(TreeBased):
             np.array([i for i in range(nData)])
 
         # Select root node classifing result
-        self._root.classIdx = self._TreeBased__select_class(self.Y)
-
-        # Create a map from feature to featureIdx
-        self._featureIdxMap = {}
-        for featureIdx, featureName in enumerate(featureList):
-            self._featureIdxMap[featureName] = featureIdx
+        self._root.classIdx = self._TreeBased__select_class(self.YIdx)
 
     def build_branch(
         self,
@@ -272,15 +281,21 @@ class HumanTree(TreeBased):
         featureIdx = self._featureIdxMap[featureName]
 
         # Split data
-        parentIdxs = self._nodeDataIndexs[self._currentNodeIdx]
+        parentIdxs = self._nodeDataIdxs[self._currentNodeIdx]
         leftIdxs, rightIdxs = \
             self._TreeBased__split(self.X, featureIdx, threshold)
         leftIdxs = list(set(parentIdxs).intersection(leftIdxs))
         rightIdxs = list(set(parentIdxs).intersection(rightIdxs))
 
+        # child index formulas of binary tree are
+        # left child: 2*n + 1
+        # right child: 2*n + 2
+        self._nodeDataIdxs[2*self._currentNodeIdx + 1] = leftIdxs
+        self._nodeDataIdxs[2*self._currentNodeIdx + 2] = rightIdxs
+
         # Left and right nodes classifing results
-        leftClassIdx = self._TreeBased__select_class(self.Y[leftIdxs])
-        rightClassIdx = self._TreeBased__select_class(self.Y[rightIdxs])
+        leftClassIdx = self._TreeBased__select_class(self.YIdx[leftIdxs])
+        rightClassIdx = self._TreeBased__select_class(self.YIdx[rightIdxs])
 
         self._currentNode.threshold = threshold
         self._currentNode.feature = featureIdx

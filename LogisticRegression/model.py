@@ -4,6 +4,7 @@ sys.path.append("../")  # to import module
 # Handling Value Errors
 from utils import denominator, log_prob
 
+# 테스트
 from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt

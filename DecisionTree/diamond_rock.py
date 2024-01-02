@@ -1,5 +1,5 @@
 from pandas import read_csv
-from model import DecisionTree
+from DecisionTree import DecisionTree
 
 # Load Data
 df = read_csv("../Datasets/diamond_rock_index.csv")

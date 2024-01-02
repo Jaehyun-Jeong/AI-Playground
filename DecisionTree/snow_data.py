@@ -1,4 +1,4 @@
-from model import DecisionTree
+from DecisionTree import DecisionTree
 from pandas import read_excel
 import numpy as np
 

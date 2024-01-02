@@ -1,5 +1,5 @@
 from pandas import read_csv
-from model import DecisionTree
+from DecisionTree import DecisionTree
 
 # Load Data
 df = read_csv("../Datasets/zebra_giraffe_crowd_index.csv")

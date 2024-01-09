@@ -41,7 +41,7 @@ class TreeBased():
     # ex)
     # {'dog': 30, 'cat', 21}
     @staticmethod
-    def __count_class(
+    def _count_class(
         Y: np.ndarray
     ) -> dict:
 
@@ -51,7 +51,7 @@ class TreeBased():
 
     # 'Y'에서 가장 많은 클래스의 인덱스를 리턴한다.
     @staticmethod
-    def __select_class(
+    def _select_class(
         Y: np.ndarray
     ) -> np.int_:
 
@@ -67,7 +67,7 @@ class TreeBased():
 
     # 인덱스가 'featureIdx'인 feature의 'threshold'를 기준으로 데이터를 나눈다.
     @staticmethod
-    def __split(
+    def _split(
         X: np.ndarray,
         featureIdx: int,
         threshold: float

@@ -45,11 +45,11 @@ class DecisionTree(TreeBased):
         # 조건2: 나눌 수 있는 threshold, feature가 존재하지 않는다.
         if len(classes) == 1 or not (featureIdx or threshold):
             # Leaf 노드를 리턴한다.
-            return Node(classIdx=self._TreeBased__select_class(Y))
+            return Node(classIdx=self._TreeBased_select_class(Y))
 
         # 선택된 feature와 "threshold"를 기준으로 데이터를 나눈다.
         # 데이터의 인덱스를 나눠서, "leftIdxs", "rightIdxs"에 저장한다.
-        leftIdxs, rightIdxs = self._TreeBased__split(X, featureIdx, threshold)
+        leftIdxs, rightIdxs = self._TreeBased_split(X, featureIdx, threshold)
 
         # 나눠진 데이터에 대해, 나무를 계속 만든다.
         left = self._build_tree(
@@ -110,7 +110,7 @@ class DecisionTree(TreeBased):
 
                     # "threshold"를 기준으로 데이터를 나눈다.
                     leftIdxs, rightIdxs = \
-                        self._TreeBased__split(X, featureIdx, threshold)
+                        self._TreeBased_split(X, featureIdx, threshold)
 
                     # 왼쪽, 오른쪽 노드의 지니계수를 계산한다.
                     leftGiniImpurity = self.gini_impurity(Y[leftIdxs])

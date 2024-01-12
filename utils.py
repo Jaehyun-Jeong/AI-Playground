@@ -136,8 +136,9 @@ if __name__ == "__main__":
     df = pd.read_excel("./Datasets/snow_data.xlsx")
     df = one_hot(df, ['season'])
     print(df)
+    '''
 
-    df = pd.read_csv("./Datasets/positive_negative_sentences.tsv", sep='\t', header=0)
+    df = pd.read_csv("./Datasets/positive_negative_sentences_clean.tsv", sep='\t', header=0)
     print(df)
     df = bag_of_words(df, ["sentence"], ["좋아", "싫어"])
     print(df)
@@ -145,3 +146,4 @@ if __name__ == "__main__":
     arr = np.array([1.09023901e-13, 1.15463195e-14, 6.21724894e-15, 2.22044605e-16, 2.66453526e-15, 5.06261699e-14, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 0.00000000e+00, 2.68673972e-14, 1.77635684e-15, 4.44089210e-16, 6.66133815e-16, 2.46025422e-13])
 
     print(log_prob(arr))
+    '''

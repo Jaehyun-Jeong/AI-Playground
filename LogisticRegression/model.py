@@ -1,7 +1,11 @@
 import sys
 sys.path.append("../")  # to import module
 
-# Handling Value Errors
+'''
+에러 핸들링을 위한 함수
+"denominator": 0으로 나누는 경우를 처리하기 위한 함수
+"log_prob": 로그에 0이 들어간 경우를 처리하기 위한 함수
+'''
 from utils import denominator, log_prob
 
 from typing import Tuple
@@ -9,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Logistic Regression
+# Logistic Regression의 클래스
 class LogisticRegression:
 
     def __init__(
@@ -20,136 +24,118 @@ class LogisticRegression:
         is_render: bool = True
     ):
 
-        self.__n_features = n_features
+        # 피처의 수를 저장한다.
+        self._n_features = n_features
 
-        # Randomly init the weights
-        # n_features + bias
+        # 가중치를 랜덤하게 부여한다.
         self.W = np.random.rand(n_features + 1)
 
-        # Gradients
-        self.__model_grad = 0
-        self.__sigmoid_grad = 0
-        self.__binary_cross_entropy_grad = 0
+        # 학습중인 그래디언트를 저장한다.
+        self._model_grad = 0
+        self._sigmoid_grad = 0
+        self._binary_cross_entropy_grad = 0
 
-        # Train parameters
-        self.__is_train = is_train
-        self.__learning_rate = learning_rate
+        # 학습중인지를 결정하는 인스턴스 변수이다.
+        self.is_train = is_train
 
-        # Only for 2 features
+        # Learning rate 를 저장하는 인스턴스 변수이다.
+        self.learning_rate = learning_rate
+
+        # Feature 가 2개인 경우만 렌더링이 가능하다.
         if n_features == 2:
-            self.__is_render = is_render
+            self.is_render = is_render
         else:
-            self.__is_render = False
+            self.is_render = False
 
-        # epoch step number
+        # 진행한 학습 스텝 수를 저장한다.
         self.step = 0
 
-        # Rendering
-        if self.__is_render:
+        # 렌더링을 위한 초기화를 한다.
+        if self.is_render:
             self.fig = plt.figure()
-            plt.ion()  # Use interactive mode
+            # 그래프가 움직일 수 있도록
+            # interactive mode 를 실행한다.
+            plt.ion()  # interactive mode
             self.ax = self.fig.add_subplot(111)
             self.line = None
 
-    @property
-    def is_train(self) -> bool:
-        return self.__is_train
-
-    @is_train.setter
-    def is_train(
-        self,
-        is_train: bool
-    ) -> bool:
-        self.__is_train = is_train
-
-    @property
-    def learning_rate(self) -> float:
-        return self.__learning_rate
-
-    @learning_rate.setter
-    def learning_rate(
-        self,
-        learning_rate: float
-    ) -> float:
-        self.__learning_rate = learning_rate
-
-    @property
-    def is_render(self) -> bool:
-        return self.__is_render
-
-    @is_render.setter
-    def is_render(
-        self,
-        is_render: bool
-    ):
-        self.__is_render = is_render
-
+    # 모든 열에 대해, 선형함수를 거치는 메소드이다.
+    # 계산 방법은 AI PLAYGROUND의 "모델, 최적화 가이드라인"을 참고
     def model(
         self,
         data: np.ndarray
     ) -> np.ndarray:
 
-        # Get the number of data
+        # 데이터의 크기를 구한다.
         data_size = data.shape[0]
-        ones = np.ones(data_size)  # For bias multiplication
 
-        # Add column of ones to multiply bias
+        # 데이터에 바이어스 항을 위한 열을 추가한다.
+        ones = np.ones(data_size)
         X = np.column_stack((ones, data))
 
-        # Save grads
-        if self.__is_train:
+        # 학습 중이라면, 그래디언트를 계산해서 저장한다.
+        if self.is_train:
             # (|N|, features)
-            self.__model_grad = X
+            self._model_grad = X
 
         # (|N|, )
         return np.matmul(X, self.W)
 
+    # 시그모이드 함수의 메소드이다.
     def sigmoid(
         self,
         arr: np.ndarray
     ) -> np.ndarray:
 
-        # Save grads
-        if self.__is_train:
+        # 학습 중이라면, 그래디언트를 계산해서 저장한다.
+        if self.is_train:
             # (|N|, )
-            self.__sigmoid_grad = np.exp(-arr) / (1 + np.exp(-arr))**2
+            self._sigmoid_grad = np.exp(-arr) / (1 + np.exp(-arr))**2
 
         # (|N|, )
         return 1 / (1 + np.exp(-arr))
 
+    # Binary cross entropy 함수의 메소드이다.
     def binary_cross_entropy(
         self,
-        Y_hat: np.ndarray,
-        Y: np.ndarray
+        Y_hat: np.ndarray,  # 예측 값
+        Y: np.ndarray  # 실제 값
     ) -> np.ndarray:
 
-        if self.__is_train:
+        # 그래디언트를 계산해서 저장한다.
+        if self.is_train:
             # (|N|, )
-            self.__binary_cross_entropy_grad = \
+            self._binary_cross_entropy_grad = \
                 (Y_hat - Y) / denominator(Y_hat*(1 - Y_hat))
 
         # (|N|, )
         return -(Y*log_prob(Y_hat) + (1-Y)*log_prob(1-Y_hat))
 
+    # Batch gradient descent 를 사용해서 최적화를 진행한다.
     def batch_gradient_descent(
         self
     ):
 
-        temp_grad = np.zeros(self.__n_features + 1)
-        grad = np.zeros(self.__n_features + 1)
-        batch_size = self.__model_grad.shape[0]
+        # 그래디언트를 저장한다.
+        # "self._n_features + 1"에서 1을 더하는 이유는, bias 항이 있기 때문이다.
+        temp_grad = np.zeros(self._n_features + 1)
+        grad = np.zeros(self._n_features + 1)
 
-        for idx, model_grad in enumerate(self.__model_grad):
+        # Batch Gradient Descent 에서 batch 의 크기는 전체 데이터의 크기이다.
+        batch_size = self._model_grad.shape[0]
+
+        
+        for idx, model_grad in enumerate(self._model_grad):
             temp_grad = np.copy(model_grad)
-            temp_grad = self.__sigmoid_grad[idx] * temp_grad
-            temp_grad = self.__binary_cross_entropy_grad[idx] * temp_grad
+            temp_grad = self._sigmoid_grad[idx] * temp_grad
+            temp_grad = self._binary_cross_entropy_grad[idx] * temp_grad
             grad = grad + temp_grad
 
         # Get average of the gradients
         grad = grad / batch_size
 
         # Update the weights
-        self.W = self.W - self.__learning_rate * grad
+        self.W = self.W - self.learning_rate * grad
 
     def forward(
         self,
@@ -232,7 +218,7 @@ class LogisticRegression:
         epochs: int = 10,
     ):
 
-        if self.__is_render:
+        if self.is_render:
             self.render_init(X, Y)
 
         for epoch in range(epochs):
@@ -240,7 +226,7 @@ class LogisticRegression:
             self.batch_gradient_descent()
             self.step += 1
 
-            if self.__is_render:
+            if self.is_render:
                 self.render_update(X)
 
             # print training status

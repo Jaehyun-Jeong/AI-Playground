@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# Logistic Regression
 class LogisticRegression:
 
     def __init__(

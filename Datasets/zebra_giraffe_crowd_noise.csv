@@ -11,3 +11,7 @@ x,y,species
 -1,-2,zebra
 -2,-3,zebra
 -3,-2,zebra
+-3,3,flower
+2,3,flower
+1,0,tree
+3,2,tree

@@ -236,8 +236,10 @@ class LogisticRegression:
         # Epoch 수 만큼 학습을 진행한다.
         for epoch in range(epochs):
             L = self.forward(X, Y)  # Forward pass
+
+            # Batch Gradient Descent 를 진행한다.
             self.batch_gradient_descent()  # Batch Gradient Descent
-            self.step += 1  # Step 수를 늘린다.
+            self.step += 1  # 학습 스텝을 1회 늘린다.
 
             # 렌더링 중이라면, 학습 상황을 업데이트 한다.
             if self.is_render:

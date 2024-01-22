@@ -19,6 +19,7 @@ class KNN:
         x: np.ndarray  # 2d array 로 넣어야 한다.
     ):
 
+        # 거리를 계산을 위해 차이를 먼저 구한다.
         diff: np.ndarray = np.zeros(self.X.shape)
 
         for idx, row in enumerate(self.X):
